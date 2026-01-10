@@ -52,6 +52,8 @@ jobs:
           touch dist/.nojekyll
 
       - name: Upload HTML to Canvas
+        env:
+          CANVAS_ACCESS_TOKEN: ${{ secrets.CANVAS_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
           if [[ -f set01.html ]]; then python3 upload-to-canvas.py set01.html https://osu.instructure.com/courses/205092/assignments/5236217; fi
