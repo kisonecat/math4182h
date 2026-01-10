@@ -51,6 +51,22 @@ jobs:
           done
           touch dist/.nojekyll
 
+      - name: Upload HTML to Canvas
+        run: |
+          set -euo pipefail
+          if [[ -f set01.html ]]; then python3 upload-to-canvas.py set01.html https://osu.instructure.com/courses/205092/assignments/5236217; fi
+          if [[ -f set02.html ]]; then python3 upload-to-canvas.py set02.html https://osu.instructure.com/courses/205092/assignments/5236221; fi
+          if [[ -f set03.html ]]; then python3 upload-to-canvas.py set03.html https://osu.instructure.com/courses/205092/assignments/5236219; fi
+          if [[ -f set04.html ]]; then python3 upload-to-canvas.py set04.html https://osu.instructure.com/courses/205092/assignments/5236218; fi
+          if [[ -f set05.html ]]; then python3 upload-to-canvas.py set05.html https://osu.instructure.com/courses/205092/assignments/5236226; fi
+          if [[ -f set06.html ]]; then python3 upload-to-canvas.py set06.html https://osu.instructure.com/courses/205092/assignments/5236227; fi
+          if [[ -f set07.html ]]; then python3 upload-to-canvas.py set07.html https://osu.instructure.com/courses/205092/assignments/5236228; fi
+          if [[ -f set08.html ]]; then python3 upload-to-canvas.py set08.html https://osu.instructure.com/courses/205092/assignments/5236229; fi
+          if [[ -f set09.html ]]; then python3 upload-to-canvas.py set09.html https://osu.instructure.com/courses/205092/assignments/5236282; fi
+          if [[ -f set10.html ]]; then python3 upload-to-canvas.py set10.html https://osu.instructure.com/courses/205092/assignments/5236283; fi
+          if [[ -f set11.html ]]; then python3 upload-to-canvas.py set11.html https://osu.instructure.com/courses/205092/assignments/5236284; fi
+          if [[ -f set12.html ]]; then python3 upload-to-canvas.py set12.html https://osu.instructure.com/courses/205092/assignments/5236285; fi
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
