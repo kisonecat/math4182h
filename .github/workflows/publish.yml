@@ -23,6 +23,15 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Cache TeX Live
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/share/texlive
+            /var/lib/texlive
+            /var/cache/apt/archives
+          key: texlive-${{ runner.os }}-2026-01
+
       - name: Install LaTeX
         run: |
           sudo apt-get update
