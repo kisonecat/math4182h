@@ -50,6 +50,8 @@ NEWCOMMAND_START_RE = re.compile(
     r"""\\(re)?newcommand\b|\\DeclareMathOperator\b|\\def\b""",
     re.MULTILINE
 )
+LABEL_RE = re.compile(r"\\label\{([^}]+)\}")
+REF_RE = re.compile(r"\\ref\{([^}]+)\}")
 
 # Match \input{foo} and \input foo
 INPUT_RE = re.compile(r"""\\input\s*(\{([^}]+)\}|([^\s%]+))""")
@@ -228,8 +230,53 @@ def wrap_math_environments_in_brackets(tex: str) -> str:
 def extract_newcommand_blocks(tex: str) -> Tuple[List[str], str]:
     r"""
     Extract \newcommand/\renewcommand/\DeclareMathOperator/\def blocks
-    in a brace-balanced way. Returns (list_of_macro_defs, tex_with_macros_removed).
+    using a lightweight parser. Returns (list_of_macro_defs, tex_with_macros_removed).
     """
+    def skip_ws(s: str, pos: int) -> int:
+        while pos < len(s) and s[pos].isspace():
+            pos += 1
+        return pos
+
+    def parse_control_sequence(s: str, pos: int) -> Optional[int]:
+        if pos >= len(s) or s[pos] != "\\":
+            return None
+        pos += 1
+        if pos >= len(s):
+            return pos
+        if s[pos].isalpha():
+            while pos < len(s) and s[pos].isalpha():
+                pos += 1
+            return pos
+        # Single-char control sequence like \{
+        return pos + 1
+
+    def parse_balanced(s: str, pos: int, open_ch: str, close_ch: str) -> Optional[int]:
+        if pos >= len(s) or s[pos] != open_ch:
+            return None
+        depth = 1
+        pos += 1
+        while pos < len(s) and depth > 0:
+            c = s[pos]
+            if c == "\\" and pos + 1 < len(s):
+                pos += 2
+                continue
+            if c == open_ch:
+                depth += 1
+            elif c == close_ch:
+                depth -= 1
+            pos += 1
+        return pos if depth == 0 else None
+
+    def find_unescaped(s: str, pos: int, ch: str) -> int:
+        while pos < len(s):
+            if s[pos] == "\\" and pos + 1 < len(s):
+                pos += 2
+                continue
+            if s[pos] == ch:
+                return pos
+            pos += 1
+        return -1
+
     macros: List[str] = []
     keep = []
     i = 0
@@ -244,42 +291,56 @@ def extract_newcommand_blocks(tex: str) -> Tuple[List[str], str]:
         start = m.start()
         keep.append(tex[i:start])
 
-        # Capture from start until braces balance (best effort).
-        j = start
-        brace = 0
-        in_command = True
+        cmd = m.group(0)
+        j = m.end()
 
-        # Some definitions may end at newline without braces (rare).
-        # We'll scan until we hit a newline with brace balance 0 AND we've seen at least one '{'
-        saw_open = False
-
-        while j < n and in_command:
-            c = tex[j]
-
-            # Skip escaped chars
-            if c == "\\" and j + 1 < n:
-                j += 2
-                continue
-
-            if c == "{":
-                brace += 1
-                saw_open = True
-            elif c == "}":
-                brace = max(0, brace - 1)
-
-            # Heuristic stopping condition:
-            if saw_open and brace == 0:
-                # If the next char is a newline or whitespace and we already closed,
-                # stop after this char.
+        j = skip_ws(tex, j)
+        if cmd == r"\DeclareMathOperator":
+            if j < n and tex[j] == "*":
                 j += 1
-                break
-
-            # If it's a \def-style without braces, we might end at newline
-            if (not saw_open) and c == "\n":
-                j += 1
-                break
-
-            j += 1
+            j = skip_ws(tex, j)
+            # macro name
+            if j < n and tex[j] == "{":
+                end = parse_balanced(tex, j, "{", "}")
+                j = end if end is not None else j
+            else:
+                end = parse_control_sequence(tex, j)
+                j = end if end is not None else j
+            j = skip_ws(tex, j)
+            # operator text
+            if j < n and tex[j] == "{":
+                end = parse_balanced(tex, j, "{", "}")
+                j = end if end is not None else j
+        elif cmd in (r"\newcommand", r"\renewcommand"):
+            # macro name (either {..} or control sequence)
+            if j < n and tex[j] == "{":
+                end = parse_balanced(tex, j, "{", "}")
+                j = end if end is not None else j
+            else:
+                end = parse_control_sequence(tex, j)
+                j = end if end is not None else j
+            j = skip_ws(tex, j)
+            # optional [n] and [default]
+            if j < n and tex[j] == "[":
+                end = parse_balanced(tex, j, "[", "]")
+                j = end if end is not None else j
+                j = skip_ws(tex, j)
+                if j < n and tex[j] == "[":
+                    end = parse_balanced(tex, j, "[", "]")
+                    j = end if end is not None else j
+                    j = skip_ws(tex, j)
+            # definition body
+            if j < n and tex[j] == "{":
+                end = parse_balanced(tex, j, "{", "}")
+                j = end if end is not None else j
+        elif cmd == r"\def":
+            # \def\foo#1{...}
+            end = parse_control_sequence(tex, j)
+            j = end if end is not None else j
+            brace_pos = find_unescaped(tex, j, "{")
+            if brace_pos != -1:
+                end = parse_balanced(tex, brace_pos, "{", "}")
+                j = end if end is not None else brace_pos
 
         block = tex[start:j].strip()
         if block:
@@ -476,12 +537,32 @@ def latex_to_html_inline(tex: str) -> str:
     r"""
     Convert a LaTeX fragment to HTML (inline), preserving MathJax TeX.
     """
+    def protect_tags(text: str) -> Tuple[str, List[str]]:
+        protected: List[str] = []
+
+        def repl(m: re.Match) -> str:
+            protected.append(m.group(0))
+            return f"@@TAG{len(protected) - 1}@@"
+
+        tag_re = re.compile(r"</?(?:em|strong|ol|ul|li)\b[^>]*>|<br\s*/?>")
+        return tag_re.sub(repl, text), protected
+
+    def restore_tags(text: str, protected: List[str]) -> str:
+        for i, tag in enumerate(protected):
+            text = text.replace(f"@@TAG{i}@@", tag)
+        return text
+
     # First convert lists at block-level (it returns HTML for lists)
     tex = convert_lists(tex)
 
     # Convert dollar math to \( \) / \[ \], and wrap math envs
     tex = wrap_math_environments_in_brackets(tex)
     tex = convert_dollar_math_to_paren_bracket(tex)
+
+    # Basic inline formatting commands (balanced braces), before math splitting
+    tex = replace_command_arg_balanced(tex, "emph", "<em>", "</em>")
+    tex = replace_command_arg_balanced(tex, "textbf", "<strong>", "</strong>")
+    tex = replace_command_arg_balanced(tex, "textit", "<em>", "</em>")
 
     # Split by math segments so we don't clobber TeX with HTML escaping rules too much
     segs = split_by_math_segments(tex)
@@ -492,27 +573,18 @@ def latex_to_html_inline(tex: str) -> str:
             # Escape HTML special chars but keep TeX
             out_parts.append(html_escape_content(seg))
         else:
-            # Basic inline formatting commands (balanced braces)
             t = seg
-            t = replace_command_arg_balanced(t, "emph", "<em>", "</em>")
-            t = replace_command_arg_balanced(t, "textbf", "<strong>", "</strong>")
-            t = replace_command_arg_balanced(t, "textit", "<em>", "</em>")
             # line breaks
             t = t.replace(r"\\", "<br/>")
             # Clean whitespace
             t = re.sub(r"[ \t]+\n", "\n", t)
             t = re.sub(r"\n[ \t]+", "\n", t)
-            # Escape HTML
+            # Escape HTML without escaping tags we generated.
+            t, protected = protect_tags(t)
             t = html_escape_content(t)
-            # Undo escaping inside tags we inserted (we escaped after inserting!)
-            # So we should escape BEFORE inserting tags. Easiest: re-run with a safer strategy:
-            # We'll do a minimal fix: unescape the tags we generated.
-            t = (t.replace("&lt;em&gt;", "<em>").replace("&lt;/em&gt;", "</em>")
-                   .replace("&lt;strong&gt;", "<strong>").replace("&lt;/strong&gt;", "</strong>")
-                   .replace("&lt;br/&gt;", "<br/>")
-                   .replace("&lt;ol ", "<ol ").replace("&lt;/ol&gt;", "</ol>")
-                   .replace("&lt;ul ", "<ul ").replace("&lt;/ul&gt;", "</ul>")
-                   .replace("&lt;li ", "<li ").replace("&lt;/li&gt;", "</li>"))
+            # TeX-style quotes (use entities after escaping so & stays intact)
+            t = t.replace("``", "&ldquo;").replace("''", "&rdquo;")
+            t = restore_tags(t, protected)
             out_parts.append(t)
 
     return "".join(out_parts)
@@ -652,6 +724,7 @@ def parse_sections_and_problems(body: str) -> List[Tuple[str, str]]:
 
 def render_html(meta: DocMeta, setno: int, macros: List[str], blocks: List[Tuple[str, str]]) -> str:
     set_id = pad2(setno)
+    term = "Spring 2026"
 
     # Styles
     page_style = (
@@ -660,9 +733,7 @@ def render_html(meta: DocMeta, setno: int, macros: List[str], blocks: List[Tuple
         "color: #111; background: #fff;"
     )
     header_style = (
-        "padding: 18px 18px 14px 18px; margin: 0 0 18px 0; "
-        "border: 1px solid #e5e7eb; border-radius: 14px; "
-        "box-shadow: 0 6px 20px rgba(0,0,0,0.06);"
+        "padding: 6px 0 12px 0; margin: 0 0 18px 0;"
     )
     title_style = "margin: 0; font-size: 24px; line-height: 1.2;"
     subtitle_style = "margin: 6px 0 0 0; font-size: 14px; color: #444;"
@@ -704,16 +775,17 @@ def render_html(meta: DocMeta, setno: int, macros: List[str], blocks: List[Tuple
         # Put macros in a hidden inline-math block so MathJax reads them.
         # MathJax v3 will parse macros appearing anywhere before use.
         macro_block = (
-            f"<span style=\"display:none;\">{html_escape_content(r'\\(' + joined + r'\\)')}</span>"
+            f"<span style=\"display:none;\">{html_escape_content(r'\(' + joined + r'\)')}</span>"
         )
 
     # Header text
     hwtitle = meta.hwtitle or meta.course or "Problem Set"
     course = meta.course or ""
-    author = meta.author or ""
-    header_title = html_escape_content(hwtitle)
-    header_sub = " ".join(x for x in [course, author, f"Set S{set_id}"] if x).strip()
-    header_sub_html = html_escape_content(header_sub)
+    header_title = html_escape_content(f"{hwtitle}: Problem Set #{setno}")
+    if course and term:
+        header_sub_html = f"{html_escape_content(course)}&nbsp;&nbsp;{html_escape_content(term)}"
+    else:
+        header_sub_html = html_escape_content(course or term)
 
     # Begin HTML
     parts: List[str] = []
@@ -744,10 +816,27 @@ def render_html(meta: DocMeta, setno: int, macros: List[str], blocks: List[Tuple
         parts.append("</div>")
     parts.append("</div>")
 
+    # Prepass: map labels to problem ids
+    label_map: dict[str, str] = {}
+    prob_counter = 0
+    for kind, payload in blocks:
+        if kind in ("problem", "problem*"):
+            prob_counter += 1
+            pid = f"S{set_id}P{pad2(prob_counter)}"
+            for label in LABEL_RE.findall(payload):
+                label_map[label] = pid
+
+    def replace_refs(tex: str) -> str:
+        def repl(m: re.Match) -> str:
+            return label_map.get(m.group(1), m.group(0))
+        return REF_RE.sub(repl, tex)
+
     # Main blocks
     prob_counter = 0
     for kind, payload in blocks:
         if kind == "section":
+            payload = LABEL_RE.sub("", payload)
+            payload = replace_refs(payload)
             title = latex_to_html_inline(payload)
             parts.append(f"<h1 style=\"{section_style}\">{title}</h1>")
             continue
@@ -756,6 +845,8 @@ def render_html(meta: DocMeta, setno: int, macros: List[str], blocks: List[Tuple
             prob_counter += 1
             pid = f"S{set_id}P{pad2(prob_counter)}"
             star = " ★" if kind == "problem*" else ""
+            payload = LABEL_RE.sub("", payload)
+            payload = replace_refs(payload)
             content_html = latex_to_html_inline(payload)
             content_html = wrap_paragraphs(content_html)
 
@@ -824,4 +915,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

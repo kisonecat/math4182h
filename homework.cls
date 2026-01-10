@@ -41,8 +41,8 @@
 % ------------------------------------------------------------
 \newcommand{\semestername}{%
   \ifcase\month
-    \or Winter% Jan
-    \or Winter% Feb
+    \or Spring% Jan
+    \or Spring% Feb
     \or Spring% Mar
     \or Spring% Apr
     \or Spring% May
@@ -108,13 +108,6 @@
 \newtheorem{remark}[theorem]{Remark}
 \newtheorem{example}[theorem]{Example}
 \newtheorem{definition}[theorem]{Definition}
-
-% ------------------------------------------------------------
-% Common symbols
-% ------------------------------------------------------------
-\newcommand{\R}{\mathbb{R}}
-\newcommand{\Z}{\mathbb{Z}}
-\newcommand{\N}{\mathbb{N}}
 
 % ------------------------------------------------------------
 % Problem environments + labels (matches your S##P## scheme)
