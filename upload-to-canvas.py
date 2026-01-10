@@ -16,6 +16,7 @@ import argparse
 import json
 import os
 import sys
+from html.parser import HTMLParser
 from urllib.parse import urlparse, urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
@@ -72,6 +73,71 @@ def http_json(method: str, url: str, token: str, data_dict=None, timeout=60):
         raise RuntimeError(f"{method} {url} -> Could not parse JSON response") from e
 
 
+class BodyExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.in_body = False
+        self.seen_body = False
+        self.parts = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() == "body":
+            self.in_body = True
+            self.seen_body = True
+            return
+        if self.in_body:
+            self.parts.append(self._format_starttag(tag, attrs, closed=False))
+
+    def handle_startendtag(self, tag, attrs):
+        if self.in_body:
+            self.parts.append(self._format_starttag(tag, attrs, closed=True))
+
+    def handle_endtag(self, tag):
+        if tag.lower() == "body":
+            self.in_body = False
+            return
+        if self.in_body:
+            self.parts.append(f"</{tag}>")
+
+    def handle_data(self, data):
+        if self.in_body:
+            self.parts.append(data)
+
+    def handle_entityref(self, name):
+        if self.in_body:
+            self.parts.append(f"&{name};")
+
+    def handle_charref(self, name):
+        if self.in_body:
+            self.parts.append(f"&#{name};")
+
+    def handle_comment(self, data):
+        if self.in_body:
+            self.parts.append(f"<!--{data}-->")
+
+    def _format_starttag(self, tag, attrs, closed: bool):
+        if not attrs:
+            return f"<{tag}{' /' if closed else ''}>"
+        attr_strs = []
+        for key, value in attrs:
+            if value is None:
+                attr_strs.append(key)
+            else:
+                escaped = value.replace('"', "&quot;")
+                attr_strs.append(f'{key}="{escaped}"')
+        attr_section = " ".join(attr_strs)
+        return f"<{tag} {attr_section}{' /' if closed else ''}>"
+
+
+def extract_body_html(html: str):
+    parser = BodyExtractor()
+    parser.feed(html)
+    parser.close()
+    if parser.seen_body:
+        return "".join(parser.parts), True
+    return html, False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("html_file", help="Path to HTML file (e.g., set01.html)")
@@ -96,10 +162,14 @@ def main():
         print(f"ERROR: Could not read {args.html_file}: {e}", file=sys.stderr)
         sys.exit(2)
 
+    new_html, used_body = extract_body_html(new_html)
+
     # Fetch current assignment (useful sanity check)
     assignment = http_json("GET", api, token, timeout=30)
     title = assignment.get("name", "(no name)")
     print(f"Assignment: {title}")
+    if used_body:
+        print("Using <body> contents only.")
     print(f"Replacing description with {len(new_html)} characters from {args.html_file}")
 
     if args.dry_run:
@@ -120,4 +190,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
