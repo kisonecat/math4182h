@@ -63,14 +63,39 @@
 \newcounter{problemset}
 \setcounter{problemset}{1}
 
-\RequirePackage{expl3}
-\ExplSyntaxOn
-\regex_extract_once:nnNTF { (\d+) } { \c_sys_jobname_str } \l_tmpa_seq
-  {
-    \setcounter{problemset}{ \seq_item:Nn \l_tmpa_seq {1} }
-  }
-  { }
-\ExplSyntaxOff
+\makeatletter
+\newcommand{\@setproblemsetfromjobname}{%
+  \begingroup
+  \def\ps@digits{}%
+  \def\ps@found{0}%
+  \def\ps@scan##1{%
+    \ifx##1\relax
+      \ifx\ps@digits\@empty\else
+        \setcounter{problemset}{\ps@digits}%
+      \fi
+    \else
+      \ifnum\ps@found=0\relax
+        \ifnum`##1>47\relax\ifnum`##1<58\relax
+          \edef\ps@digits{\ps@digits##1}%
+          \def\ps@found{1}%
+        \fi\fi
+      \else
+        \ifnum\ps@found=1\relax
+          \ifnum`##1>47\relax\ifnum`##1<58\relax
+            \edef\ps@digits{\ps@digits##1}%
+          \else
+            \def\ps@found{2}%
+          \fi\fi
+        \fi
+      \fi
+      \expandafter\ps@scan
+    \fi
+  }%
+  \expandafter\ps@scan\jobname\relax
+  \endgroup
+}
+\@setproblemsetfromjobname
+\makeatother
 
 % Manual override (also resets problem counter)
 \newcounter{problem}
@@ -168,4 +193,3 @@
 
 % That's all, folks!
 \endinput
-
