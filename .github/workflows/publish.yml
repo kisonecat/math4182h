@@ -1,0 +1,52 @@
+name: Build and publish problem sets
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended latexmk
+
+      - name: Build PDFs and HTML
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          mkdir -p dist
+          for tex in set*.tex; do
+            latexmk -pdf -interaction=nonstopmode -halt-on-error "$tex"
+            python3 set-to-html.py "$tex"
+            base="${tex%.tex}"
+            if [[ -f "${base}.pdf" ]]; then cp "${base}.pdf" dist/; fi
+            if [[ -f "${base}.html" ]]; then cp "${base}.html" dist/; fi
+          done
+          touch dist/.nojekyll
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
