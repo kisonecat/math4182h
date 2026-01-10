@@ -56,6 +56,10 @@ jobs:
           CANVAS_ACCESS_TOKEN: ${{ secrets.CANVAS_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
+          if [[ -z "${CANVAS_ACCESS_TOKEN:-}" ]]; then
+            echo "CANVAS_ACCESS_TOKEN not set; skipping Canvas uploads."
+            exit 0
+          fi
           if [[ -f set01.html ]]; then python3 upload-to-canvas.py set01.html https://osu.instructure.com/courses/205092/assignments/5236217; fi
           if [[ -f set02.html ]]; then python3 upload-to-canvas.py set02.html https://osu.instructure.com/courses/205092/assignments/5236221; fi
           if [[ -f set03.html ]]; then python3 upload-to-canvas.py set03.html https://osu.instructure.com/courses/205092/assignments/5236219; fi
