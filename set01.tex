@@ -8,152 +8,15 @@
 \maketitle
 
 \begin{inspiration}
-'Tis a derivative from me to mine, and only that I stand for.
-\byline{Act 3, Scene 2, Shakespeare's \textit{The Winter's Tale}}
+This problem set intentionally left blank.
 \end{inspiration}
 
 \section{Terminology}
 
-\begin{problem}
-State the definition of differentiability of a function $f:\R^n\to\R^m$ at a point $a\in\R^n$ in the ``little-$o$'' form.
-What is the \emph{derivative} $Df(a)$ in this definition?  What does it mean for $Df(a)$ to be \emph{unique}?
-\end{problem}
-
-\begin{problem}
-Explain (carefully!) what it means to say that $Df(a)$ is the ``best linear approximation'' to $f$ near $a$.
-Your explanation should make explicit what is being approximated, what the error term is, and what is meant by ``best.''
-\end{problem}
-
-\begin{problem}
-Define the \emph{directional derivative} $D_v f(a)$ of a scalar function $f:\R^n\to\R$ in the direction $v\in\R^n$.
-How does this definition depend on the \emph{choice of parameterization} of the line through $a$ in direction $v$?\label{directional}
-\end{problem}
-
-\begin{problem}
-State the relationship between the derivative $Df(a)$ (as a linear map) and directional derivatives $D_v f(a)$ \emph{when $f$ is differentiable at $a$}.
-What is the corresponding formula in terms of the gradient $\nabla f(a)$ when $m=1$?
-\ref{directional}
-\end{problem}
-
 \section{Numericals}
-
-\begin{problem}
-Let $f:\R^2\to\R$ be given by
-\[
-f(x,y)=
-\begin{cases}
-\frac{x^3}{x^2+y^2} & (x,y)\neq (0,0),\\
-0 & (x,y)=(0,0).
-\end{cases}
-\]
-\begin{enumerate}
-\item Compute the directional derivative $D_v f(0,0)$ for an arbitrary direction $v=(v_1,v_2)$.
-\item Compute the partial derivatives $f_x(0,0)$ and $f_y(0,0)$, and compare them to part (a).
-\item Decide whether $f$ is differentiable at $(0,0)$.  If you claim it is differentiable, exhibit $Df(0,0)$ and prove the error term is $o(\|(x,y)\|)$.  If you claim it is not, prove that no linear map can satisfy the definition.
-\end{enumerate}
-\end{problem}
-
-\begin{problem}
-Define $g:\R^2\to\R$ by
-\[
-g(x,y)=
-\begin{cases}
-\frac{x^2y}{x^4+y^2} & (x,y)\neq(0,0),\\
-0 & (x,y)=(0,0).
-\end{cases}
-\]
-\begin{enumerate}
-\item Show that $D_v g(0,0)$ exists for every $v\in\R^2$ and compute it.
-\item Show that $g$ is \emph{not} differentiable at $(0,0)$.
-(Hint: test along curves $y=mx^2$ and choose $m$ cleverly.)
-\end{enumerate}
-\end{problem}
-
-\begin{problem}
-Let $A$ be an $m\times n$ matrix and $b\in\R^m$.  Consider $f:\R^n\to\R^m$ given by $f(x)=Ax+b$.
-\begin{enumerate}
-\item Prove directly from the definition (not by quoting a theorem) that $f$ is differentiable everywhere and compute $Df(a)$.
-\item Show that for any $v\in\R^n$, the directional derivative satisfies $D_v f(a)=Av$.
-\end{enumerate}
-\end{problem}
-
-\begin{problem}
-Let $f:\R^2\to\R$ be $f(x,y)=\sqrt{x^2+y^2}$.  Compute all directional derivatives at $(0,0)$.
-Is $f$ differentiable at $(0,0)$?  Explain your answer using the ``best linear approximation'' viewpoint.
-\end{problem}
 
 \section{Exploration}
 
-\begin{problem}
-Let $f:\R^n\to\R^m$ and suppose $f$ is differentiable at $a$.
-Prove that $f$ is continuous at $a$.
-Then salvage the converse: give a natural extra hypothesis under which continuity at $a$ \emph{does} imply differentiability at $a$,
-and prove your claim.
-\end{problem}
-
-\begin{problem}
-(Why ``directional derivatives exist'' is not enough.) \\
-Construct a function $f:\R^2\to\R$ such that:
-\begin{enumerate}
-\item all directional derivatives $D_v f(0,0)$ exist, and
-\item the map $v\mapsto D_v f(0,0)$ is \emph{linear} in $v$,
-\end{enumerate}
-but $f$ is \emph{not} differentiable at $(0,0)$.
-(Prove all three statements.)
-\end{problem}
-
-\begin{problem}
-Let $f:\R^n\to\R$ and suppose the partial derivatives $\partial f/\partial x_i$ exist in a neighborhood of $a$ and are continuous at $a$.
-Prove that $f$ is differentiable at $a$ and that
-\[
-Df(a)(h)=\sum_{i=1}^n \frac{\partial f}{\partial x_i}(a)\,h_i.
-\]
-Your proof should be quantitative: the conclusion must come from a bound that forces an $o(\|h\|)$ error.
-\end{problem}
-
-\begin{problem}
-Let $f:\R^n\to\R^m$ be differentiable at $a$ with derivative $L=Df(a)$.
-Prove that
-\[
-\lim_{\|h\|\to 0}\frac{\|f(a+h)-f(a)\|}{\|h\|}=\sup_{\|u\|=1}\|L(u)\|.
-\]
-Interpret the right-hand side as an ``operator norm'' and explain, in words, why this expresses the best linear approximation principle.
-\end{problem}
-
 \section{Prove or Disprove and Salvage if Possible}
 
-\begin{problem}
-If all partial derivatives of $f:\R^n\to\R$ exist at $a$, then $f$ is differentiable at $a$.
-If false, give a counterexample.  Then give a correct theorem in the same spirit (minimal additional hypothesis) and prove it.
-\end{problem}
-
-\begin{problem}
-If all directional derivatives $D_v f(a)$ exist for $f:\R^n\to\R$ and depend continuously on $v$ (on the unit sphere), then $f$ is differentiable at $a$.
-Decide whether this statement is true or false.  If false, salvage it: add a hypothesis that makes it true, and prove the repaired statement.
-\end{problem}
-
-\begin{problem}
-(Chain rule, but as a logic exercise.) \\
-Suppose $f:\R^n\to\R^m$ is differentiable at $a$ and $g:\R^m\to\R^k$ is differentiable at $f(a)$.
-\begin{enumerate}
-\item Prove that $g\circ f$ is differentiable at $a$ and compute $D(g\circ f)(a)$.
-\item Now \emph{remove} the differentiability hypothesis on $g$ and replace it with:
-\[
-g(y)=g(f(a)) + M(y-f(a)) + r(y)\quad\text{with}\quad \frac{\|r(y)\|}{\|y-f(a)\|}\to 0.
-\]
-Explain why this is ``exactly'' differentiability at $f(a)$, and identify where it is used in the proof.
-\end{enumerate}
-\end{problem}
-
-\begin{problem}
-(Product/quotient rule meets differentiability.) \\
-Let $f,g:\R^n\to\R$ be differentiable at $a$.
-\begin{enumerate}
-\item Prove from the definition that $fg$ is differentiable at $a$ and compute $D(fg)(a)$.
-\item Suppose also that $g(a)\neq 0$.  Prove that $f/g$ is differentiable at $a$ and compute $D(f/g)(a)$.
-\item In both parts, make sure you explicitly justify that the error terms are $o(\|h\|)$.
-\end{enumerate}
-\end{problem}
-
 \end{document}
-
