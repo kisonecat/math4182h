@@ -64,6 +64,12 @@ def html_escape_content(s: str) -> str:
              .replace(">", "&gt;"))
 
 
+def replace_tex_dashes(s: str) -> str:
+    # Convert TeX-style dashes to Unicode en/em dashes.
+    # This avoids entities being rendered literally by downstream HTML sanitizers.
+    return s.replace("---", "—").replace("--", "–")
+
+
 def strip_comments(tex: str) -> str:
     # Remove TeX comments: everything after an unescaped %
     out_lines = []
@@ -584,6 +590,7 @@ def latex_to_html_inline(tex: str) -> str:
             t = html_escape_content(t)
             # TeX-style quotes (use entities after escaping so & stays intact)
             t = t.replace("``", "&ldquo;").replace("''", "&rdquo;")
+            t = replace_tex_dashes(t)
             t = restore_tags(t, protected)
             out_parts.append(t)
 
@@ -781,11 +788,14 @@ def render_html(meta: DocMeta, setno: int, macros: List[str], blocks: List[Tuple
     # Header text
     hwtitle = meta.hwtitle or meta.course or "Problem Set"
     course = meta.course or ""
-    header_title = html_escape_content(f"{hwtitle}: Problem Set #{setno}")
+    header_title = replace_tex_dashes(html_escape_content(f"{hwtitle}: Problem Set #{setno}"))
     if course and term:
-        header_sub_html = f"{html_escape_content(course)}&nbsp;&nbsp;{html_escape_content(term)}"
+        header_sub_html = (
+            f"{replace_tex_dashes(html_escape_content(course))}"
+            f"&nbsp;&nbsp;{replace_tex_dashes(html_escape_content(term))}"
+        )
     else:
-        header_sub_html = html_escape_content(course or term)
+        header_sub_html = replace_tex_dashes(html_escape_content(course or term))
 
     # Begin HTML
     parts: List[str] = []
