@@ -8,15 +8,142 @@
 \maketitle
 
 \begin{inspiration}
-This problem set intentionally left blank.
+\emph{`Tis a derivative from me to mine, and only that I stand for.}\\
+\byline{Act 3, Scene 2, Shakespeare's \textit{The Winter's Tale}}
 \end{inspiration}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Terminology}
 
+\begin{problem}
+Let $f:\R^n\to\R^m$ and $a\in\R^n$.  What does ``$f$ is differentiable at $a$'' mean?
+
+Define the \emph{directional derivative} of $f$ at $a$ in the direction of a vector $v\in\R^n$.
+\end{problem}
+
+\begin{problem}
+Let $f:\R^n\to\R$ be differentiable at $a\in\R^n$. Define the gradient $\nabla f(a)$.
+\end{problem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numericals}
 
+\begin{problem}
+Define $F:\R^2\to\R^2$ by $F(x,y)=(x^2-xy,\; x+y^2)$.
+Compute $DF(x,y)$ and use it to write the ``best'' linear approximation of $F$ at $(1,2)$.
+\end{problem}
+
+\begin{problem}
+Let $A$ be an $m\times n$ matrix and $b\in\R^m$.  Define $F:\R^n\to\R^m$ by $F(x)=Ax+b$.
+Compute the derivative of $F$.
+\end{problem}
+
+\begin{problem}
+Let $f,g:\R^n\to\R^m$ be differentiable at $a\in\R^n$.  Define 
+\(h:\R^n\to\R\) by \(h(x)=f(x)\cdot g(x)\), i.e., $h(x)$ is defined to be the dot product of $f(x)$ and $g(x)$.
+
+Compute $Dh$ in terms of $f$ and $g$ and $Df$ and $Dg$.
+\end{problem}
+
+\begin{problem}
+Recall that for
+\(
+\displaystyle\begin{pmatrix}x&y\\ z&w\end{pmatrix}\)
+we have
+\(\displaystyle\det\begin{pmatrix}x&y\\ z&w\end{pmatrix}=xw-yz\).
+
+Let
+\(
+I=\displaystyle\begin{pmatrix}1&0\\0&1\end{pmatrix}\)
+and \(H=\displaystyle\begin{pmatrix}a&b\\ c&d\end{pmatrix}\).
+
+Compute the derivative of $\det$ at $I$ in the direction $H$.
+\end{problem}
+
+\begin{problem}
+Let $\mathrm{inv}:GL_2(\R)\to M_2(\R)$ be the map sending a $2$-by-$2$ matrix to its inverse.
+
+Fix $H\in M_2(\R)$.
+Compute the derivative of the inverse map at the identity $I$ in the direction $H$.
+\end{problem}
+
+\begin{problem}\label{directional-computation}
+Define $g:\R^2\to\R$ by
+\[
+g(x,y)=
+\begin{cases}
+\dfrac{x^2y}{x^4+y^2} & (x,y)\neq(0,0), \\
+0 & (x,y)=(0,0).
+\end{cases}
+\]
+For $v \in \R^2$, compute the directional derivative $D_v g(0,0)$.
+\end{problem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Exploration}
 
+\begin{problem}
+Is the function $g$ in \ref{directional-computation} differentiable at $(0,0)$?
+\end{problem}
+
+\begin{problem}
+Define $f:\R^2\to\R$ by \(f(x,y)=\sqrt{1+x^2+y^2}\).
+
+Show that for all $(x,y) \in \R^2$, \[ 0\le f(x,y)-1 \le \frac12(x^2+y^2). \]
+
+Use this fact to bound the error of a linear approximation to $f$ at $(0,0)$.
+
+Finally find an explicit value of $\epsilon$ so that \(1 - \epsilon < \sqrt{1+0.01^2+0.02^2} < 1 + \epsilon\).
+\end{problem}
+
+\begin{problem}
+Let $f:\R^n\to\R^m$ be differentiable at $a$.
+Prove that $f$ is continuous at $a$.
+\end{problem}
+
+\begin{problem}
+Let $f,g:\R^n\to\R^m$ be differentiable at $a\in\R^n$.
+Prove \emph{from the definition of differentiability} that $f+g$ is differentiable at $a$ and that
+\[
+D(f+g)(a)=Df(a)+Dg(a).
+\]
+\end{problem}
+
+\begin{problem}
+Let $f:\R^n\to\R$ be differentiable at $a$ with gradient $\nabla f(a)\neq 0$.
+
+Prove that among all unit vectors $u$, the maximum of $D_u f(a)$ equals $\|\nabla f(a)\|$.
+
+Then show that this maximum occurs in the direction $u=\nabla f(a)/\|\nabla f(a)\|$.
+\end{problem}
+
+
+\begin{problem}
+Let $f:\C\to\C$ and write $z=x+iy$.  Suppose
+\[
+f(z)=u(x,y)+iv(x,y)
+\]
+with $u,v:\R^2\to\R$.
+
+What does it mean to say that $f$ is \emph{complex differentiable} at $z_0=x_0+iy_0$?
+
+When $f$ is complex differentiable, verify that the \textbf{Cauchy--Riemann equations} hold at $(x_0,y_0)$, i.e., show that
+\[
+u_x(x_0,y_0)=v_y(x_0,y_0),\qquad u_y(x_0,y_0)=-v_x(x_0,y_0).
+\]
+\end{problem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Prove or Disprove and Salvage if Possible}
+
+{\footnotesize For the following problems, first decide whether the statement is true or false as written. If it is true, give a complete proof that works in full generality (not just examples!) and make clear where the hypotheses are used. If it is false, disprove it with a counterexample: give a specific example that satisfies the assumptions but violates the conclusion. Justify that your example is actually a counterexample! Then try to salvage the statement by making a minimal, natural change---that could be adding a missing hypothesis or weakening the conclusion. State your corrected version clearly and prove it.}
+
+\begin{problem}
+If all partial derivatives of $f:\R^2\to\R$ exist at $a$, then $f$ is differentiable at $a$.
+\end{problem}
+
+\begin{problem}
+If for $f:\R^n\to\R$ all directional derivatives $D_u f(a)$ exist when $\|u\|=1$, and the map $u\mapsto D_u f(a)$ is continuous on the unit sphere, then $f$ is differentiable at $a$.
+\end{problem}
 
 \end{document}
