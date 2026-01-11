@@ -485,6 +485,44 @@ def replace_command_arg_balanced(s: str, cmd: str, open_tag: str, close_tag: str
     return "".join(out)
 
 
+def replace_grouped_command(tex: str, cmd: str, open_tag: str, close_tag: str) -> str:
+    r"""
+    Replace occurrences of {\cmd ...} with open_tag ... close_tag, brace-balanced.
+    """
+    i = 0
+    out = []
+    needle = r"{\%s" % cmd
+    while True:
+        start = tex.find(needle, i)
+        if start == -1:
+            out.append(tex[i:])
+            break
+        out.append(tex[i:start])
+        j = start + 1  # at '{'
+        depth = 1
+        while j < len(tex) and tex[j].isspace():
+            j += 1
+        if tex.startswith(r"\%s" % cmd, j):
+            j += len(cmd) + 1
+        while j < len(tex) and tex[j].isspace():
+            j += 1
+        content_start = j
+        while j < len(tex) and depth > 0:
+            if tex[j] == "\\" and j + 1 < len(tex):
+                j += 2
+                continue
+            if tex[j] == "{":
+                depth += 1
+            elif tex[j] == "}":
+                depth -= 1
+            j += 1
+        content = tex[content_start:j - 1]
+        content_html = latex_to_html_inline(content)
+        out.append(open_tag + content_html + close_tag)
+        i = j
+    return "".join(out)
+
+
 def split_by_math_segments(tex: str) -> List[Tuple[bool, str]]:
     r"""
     Split into segments (is_math, text) based on \( \) and \[ \].
@@ -550,7 +588,7 @@ def latex_to_html_inline(tex: str) -> str:
             protected.append(m.group(0))
             return f"@@TAG{len(protected) - 1}@@"
 
-        tag_re = re.compile(r"</?(?:em|strong|ol|ul|li)\b[^>]*>|<br\s*/?>")
+        tag_re = re.compile(r"</?(?:em|strong|ol|ul|li|span)\b[^>]*>|<br\s*/?>")
         return tag_re.sub(repl, text), protected
 
     def restore_tags(text: str, protected: List[str]) -> str:
@@ -564,6 +602,8 @@ def latex_to_html_inline(tex: str) -> str:
     # Convert dollar math to \( \) / \[ \], and wrap math envs
     tex = wrap_math_environments_in_brackets(tex)
     tex = convert_dollar_math_to_paren_bracket(tex)
+
+    tex = replace_grouped_command(tex, "footnotesize", "<span style=\"font-size: 0.9em;\">", "</span>")
 
     # Basic inline formatting commands (balanced braces), before math splitting
     tex = replace_command_arg_balanced(tex, "emph", "<em>", "</em>")
@@ -657,6 +697,17 @@ def extract_env(tex: str, env: str) -> str:
     end = find_matching_env(tex, m.start(), env)
     return tex[start:end].strip()
 
+def remove_env(tex: str, env: str) -> str:
+    while True:
+        m = re.search(rf"\\begin\{{{re.escape(env)}\}}", tex)
+        if not m:
+            return tex
+        end = find_matching_env(tex, m.start(), env)
+        end_tag = re.search(rf"\\end\{{{re.escape(env)}\}}", tex[end:])
+        if not end_tag:
+            return tex
+        tex = tex[:m.start()] + tex[end + end_tag.end():]
+
 
 def body_between_document(tex: str) -> str:
     m1 = re.search(r"\\begin\{document\}", tex)
@@ -683,8 +734,9 @@ def parse_sections_and_problems(body: str) -> List[Tuple[str, str]]:
         if not m:
             break
         if m.start() > i:
-            # ignore interstitial content like \maketitle; not needed here
-            pass
+            inter = body[i:m.start()].strip()
+            if inter:
+                blocks.append(("text", inter))
 
         if body.startswith(r"\section{", m.start()):
             # parse braced arg
@@ -722,6 +774,9 @@ def parse_sections_and_problems(body: str) -> List[Tuple[str, str]]:
 
         i = m.end()
 
+    tail = body[i:].strip()
+    if tail:
+        blocks.append(("text", tail))
     return blocks
 
 
@@ -850,6 +905,13 @@ def render_html(meta: DocMeta, setno: int, macros: List[str], blocks: List[Tuple
             title = latex_to_html_inline(payload)
             parts.append(f"<h1 style=\"{section_style}\">{title}</h1>")
             continue
+        if kind == "text":
+            payload = LABEL_RE.sub("", payload)
+            payload = replace_refs(payload)
+            content_html = latex_to_html_inline(payload)
+            content_html = wrap_paragraphs(content_html)
+            parts.append(content_html)
+            continue
 
         if kind in ("problem", "problem*"):
             prob_counter += 1
@@ -905,6 +967,7 @@ def main() -> None:
 
     # Remove \maketitle (we build our own header)
     body = re.sub(r"\\maketitle\b", "", body)
+    body = remove_env(body, "inspiration")
 
     # Parse blocks
     blocks = parse_sections_and_problems(body)
