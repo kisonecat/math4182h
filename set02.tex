@@ -8,15 +8,130 @@
 \maketitle
 
 \begin{inspiration}
-This problem set intentionally left blank.
+  \textit{Omnia mutantur, nihil interit.} \\
+  \byline{Ovid's \textit{Metamorphoses}, perhaps not about derivatives vanishing.}
 \end{inspiration}
 
 \section{Terminology}
 
+\begin{problem}
+  Write down a statement of the \textbf{chain rule} for multivariable functions.
+\end{problem}
+
+\begin{problem}
+  What is meant by the \textbf{G\^ateaux derivative} of a function $f : \R^n \to \R^m$?
+
+  Compare this to \ref{gateaux-derivative-podasip}.
+\end{problem}
+
+\begin{problem}
+  What is meant by the \textbf{Fr\'echet derivative} of a function $f : \R^n \to \R^m$?
+\end{problem}
+
+
+\begin{problem}\label{tangent-space}%
+  For a smooth function $f : \R^3 \to \R$, consider the level set $f^{-1}(0) = \{ (x,y,z) \in \R^3 : f(x,y,z) = 0 \}$. For a point $(x,y,z) \in f^{-1}(0)$, define the \textbf{tangent space} to $f^{-1}(0)$ at the point $(x,y,z)$, denoted $T_{(x,y,z)} f^{-1}(0)$.
+\end{problem}
+
 \section{Numericals}
+
+\begin{problem}
+Let $g:\R^2\to\R$ be $C^1$ with $\nabla g(2,-1)=(4,7)$.
+Define $f:\R^2\to\R^2$ via
+\[
+f(x,y)=(x+y,\;x-2y).
+\]
+Then compute $\nabla(g\circ f)(1,1)$.
+\end{problem}
+
+\begin{problem}
+  Consider a ``change of variables'' where we relate $(x,y)$ to $(u,v)$ via
+  \[
+    x = u + v, \qquad
+    y = v.
+  \]
+  Verify that $\displaystyle\frac{\partial y}{\partial u} = 0$ and yet $\displaystyle\frac{\partial u}{\partial y} \neq 0$.
+
+This is the so-called \textbf{second fundamental confusion of calculus}, cf. \textsection 10.3 of Penrose's \textit{The Road to Reality}.
+\end{problem}
+
+\begin{problem}\label{laplacian-in-polar}%
+  Use the chain rule to rewrite the Laplacian $\Delta = \displaystyle\frac{\partial^2}{\partial x^2} + \displaystyle\frac{\partial^2}{\partial y^2}$ in terms of polar coordinates, i.e., in terms of $\displaystyle\frac{\partial}{\partial r}$ and $\displaystyle\frac{\partial}{\partial \theta}$.
+\end{problem}
 
 \section{Exploration}
 
+\begin{problem}\label{riesz-representation}%
+  Suppose $L : \R^n \to \R$ is linear. Show that there exists $\vec{v} \in \R^n$ so that $L(\vec{a}) = \vec{v} \cdot \vec{a}$.
+
+Use this to explain \ref{gradient-definition}.
+\end{problem}
+
+\begin{problem}
+  Recall \ref{cauchy-riemann-equations}. Suppose $u, v : \R^2 \to \R$ are smooth functions satisfying
+\[
+u_x(x,y)=v_y(x,y)\qquad \text{and} \qquad u_y(x,y)=-v_x(x,y),
+\]
+for all $(x,y) \in \R^2$. Show that $\Delta u = 0$ and $\Delta v = 0$.
+\end{problem}
+
+\begin{problem}
+  Let $\Phi:\R^2\to\R^2$ be a rotation by $\theta$ and a translation by $(a,b)$, i.e.,
+  \[
+    \Phi(x,y)=\bigl(x\cos\theta - y\sin\theta + a,\; x\sin\theta + y\cos\theta + b\bigr).
+  \]
+If $u$ is $C^2$ and $\Delta u=0$, show that $\Delta(u\circ \Phi) = 0$.
+
+Find some other map $\Psi : \R^2 \to \R^2$ which isn't just a rotation or a translation but with the property that $\Delta u = 0$ implies $\Delta (u \circ \Psi) = 0$.
+\end{problem}
+
+\begin{problem}
+  Suppose $f : \R^n \to \R$ is continuously differentiable and $f$ is \textbf{positively homogeneous of degree $\mathbf{k}$}, meaning $f(\lambda \cdot \vec{v}) = \lambda^k f(\vec{v})$ for all $\vec{v} \in \R^n$ and $\lambda > 0$. Prove
+  \[
+    k\,f(x_{1},\ldots ,x_{n})=\sum _{i=1}^{n}x_{i}{\frac {\partial f}{\partial x_{i}}}(x_{1},\ldots ,x_{n}).
+  \]
+  This is the first half of \textbf{Euler's homogeneous function theorem}.
+\end{problem}
+
+\begin{problem}
+  For a positive integer $k$, consider the function $f_k : \R^2 \to \R$ defined in polar coordinates via $f_k(r,\theta) = r^k \cos(k\theta)$.
+
+  Note that $f_k$ is homogeneous of degree $k$, and 
+  use the formula in \ref{laplacian-in-polar} to check $\Delta f_k = 0$.
+
+  Then write $f_k$ in Cartesian coordinates to find some \textbf{harmonic} polynomials of degree $k$.
+\end{problem}
+
+\begin{problem}
+Suppose $f : \R^3 \to \R$ is a smooth function, and $f(0,0,0) = 0$ and $\nabla f(0,0,0) \neq 0$. Explain why for $v \in T_{(0,0,0)} f^{-1}(0)$ we have $v \cdot \nabla f(0,0,0) = 0$.
+\end{problem}
+
 \section{Prove or Disprove and Salvage if Possible}
+
+\begin{problem}
+  If all directional derivatives vanish at $a$, then the function is differentiable at $a$.
+\end{problem}
+
+\begin{problem}
+  Let $\gamma:\R\to\R^2$ be a $C^2$ curve parametrized by arclength, meaning $|\gamma'(s)| \equiv 1$. Then $\gamma'(s)\cdot \gamma''(s)=0$. \textit{Hint:} use \ref{dot-product-derivative}.
+\end{problem}
+
+\begin{problem}
+  Let $f:\R^n\to\R^m$ be differentiable at $a$, and let $g:\R^m\to\R$ be differentiable at $f(a)$.
+  Define $\phi(t)=g\bigl(f(a+t v)\bigr)$ for $v\in\R^n$.
+
+  Then
+\[
+\nabla(g\circ f)(a)=Df(a)\left( \left(\nabla g\right)(f(a)) \right).
+\]
+% Missing transpose!
+\end{problem}
+
+\begin{problem}
+  If $f : \R^n \to \R^m$ is differentiable at $a$ and $g : \R^m \to \R$ has all directional derivatives at $f(a)$, then
+  \[
+    D_v (g \circ f)(a) = (D_{Df(a)(v)} g)(f(a)).
+  \]
+\end{problem}
 
 \end{document}

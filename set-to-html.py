@@ -52,6 +52,7 @@ NEWCOMMAND_START_RE = re.compile(
 )
 LABEL_RE = re.compile(r"\\label\{([^}]+)\}")
 REF_RE = re.compile(r"\\ref\{([^}]+)\}")
+SET_TEX_RE = re.compile(r"^set\d+\.tex$")
 
 # Match \input{foo} and \input foo
 INPUT_RE = re.compile(r"""\\input\s*(\{([^}]+)\}|([^\s%]+))""")
@@ -145,6 +146,13 @@ def first_digits_from_filename(path: str) -> int:
 
 def pad2(n: int) -> str:
     return f"{n:02d}"
+
+def find_set_tex_files(base_dir: str) -> List[str]:
+    return [
+        os.path.join(base_dir, name)
+        for name in os.listdir(base_dir)
+        if SET_TEX_RE.match(name)
+    ]
 
 
 # --------------------------
@@ -784,7 +792,38 @@ def parse_sections_and_problems(body: str) -> List[Tuple[str, str]]:
 # HTML rendering
 # --------------------------
 
-def render_html(meta: DocMeta, setno: int, macros: List[str], blocks: List[Tuple[str, str]]) -> str:
+def build_label_map_for_tex(tex_path: str) -> dict[str, str]:
+    base_dir = os.path.dirname(os.path.abspath(tex_path)) or "."
+    raw = read_text(tex_path)
+    raw = strip_comments(raw)
+    raw = resolve_inputs(raw, base_dir)
+    _, without_macros = extract_newcommand_blocks(raw)
+    body = body_between_document(without_macros)
+    body = re.sub(r"\\maketitle\b", "", body)
+    body = remove_env(body, "inspiration")
+    blocks = parse_sections_and_problems(body)
+
+    setno = first_digits_from_filename(tex_path)
+    set_id = pad2(setno)
+    label_map: dict[str, str] = {}
+    prob_counter = 0
+    for kind, payload in blocks:
+        if kind in ("problem", "problem*"):
+            prob_counter += 1
+            pid = f"S{set_id}P{pad2(prob_counter)}"
+            for label in LABEL_RE.findall(payload):
+                if label not in label_map:
+                    label_map[label] = pid
+    return label_map
+
+
+def render_html(
+    meta: DocMeta,
+    setno: int,
+    macros: List[str],
+    blocks: List[Tuple[str, str]],
+    label_map: dict[str, str],
+) -> str:
     set_id = pad2(setno)
     term = "Spring 2026"
 
@@ -881,16 +920,6 @@ def render_html(meta: DocMeta, setno: int, macros: List[str], blocks: List[Tuple
         parts.append("</div>")
     parts.append("</div>")
 
-    # Prepass: map labels to problem ids
-    label_map: dict[str, str] = {}
-    prob_counter = 0
-    for kind, payload in blocks:
-        if kind in ("problem", "problem*"):
-            prob_counter += 1
-            pid = f"S{set_id}P{pad2(prob_counter)}"
-            for label in LABEL_RE.findall(payload):
-                label_map[label] = pid
-
     def replace_refs(tex: str) -> str:
         def repl(m: re.Match) -> str:
             return label_map.get(m.group(1), m.group(0))
@@ -972,9 +1001,24 @@ def main() -> None:
     # Parse blocks
     blocks = parse_sections_and_problems(body)
 
+    # Build label map across all sets in the directory, allowing cross-set refs.
+    label_map: dict[str, str] = {}
+    set_paths = find_set_tex_files(base_dir)
+    current_abs = os.path.abspath(tex_path)
+    set_paths.sort(key=first_digits_from_filename)
+    for path in set_paths:
+        if os.path.abspath(path) == current_abs:
+            continue
+        other_map = build_label_map_for_tex(path)
+        for label, pid in other_map.items():
+            if label not in label_map:
+                label_map[label] = pid
+    current_map = build_label_map_for_tex(tex_path)
+    label_map.update(current_map)
+
     # Render
     setno = first_digits_from_filename(tex_path)
-    html = render_html(meta, setno, macros, blocks)
+    html = render_html(meta, setno, macros, blocks, label_map)
 
     out_path = args.output
     if not out_path:
