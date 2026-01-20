@@ -171,6 +171,9 @@
 \newenvironment{inspiration}{\begin{center}\footnotesize\em}{\end{center}\vspace{-1ex}}
 \newcommand{\byline}[1]{\rm---#1}
 
+\usepackage{xr}
+\externaldocument{sets}
+
 % ------------------------------------------------------------
 % Solution environment (toggleable)
 % ------------------------------------------------------------
