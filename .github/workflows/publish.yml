@@ -45,6 +45,10 @@ jobs:
           mkdir -p dist
           for tex in set*.tex; do
             latexmk -pdf -interaction=nonstopmode -halt-on-error "$tex"
+          done
+          cat set*.aux > sets.aux
+          for tex in set*.tex; do
+            latexmk -pdf -interaction=nonstopmode -halt-on-error "$tex"
             python3 set-to-html.py "$tex"
             base="${tex%.tex}"
             if [[ -f "${base}.pdf" ]]; then cp "${base}.pdf" dist/; fi
