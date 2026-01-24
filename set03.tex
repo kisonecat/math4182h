@@ -8,15 +8,138 @@
 \maketitle
 
 \begin{inspiration}
-This problem set intentionally left blank.
+All you $R$ is mean.
+  \byline{Taylor Swift's 2010 song \textit{Mean}, \\which is not really about Taylor series, remainders, or the mean value theorem.}
 \end{inspiration}
 
 \section{Terminology}
 
+\begin{problem}
+  What is a \textbf{convex} subset of $\R^n$?
+\end{problem}
+
+\begin{problem}
+  What is meant by an \textbf{open} subset of $\R^n$? What is a \textbf{closed} subset?
+\end{problem}
+
+\begin{problem}
+  Given a $C^2$ function $f : \R^n \to \R$, what is the \textbf{Hessian} of $f$?
+\end{problem}
+
+\begin{problem}\label{multiindex}%
+  By a \textbf{multi-index}, we mean $\alpha=(\alpha_1,\dots,\alpha_n)\in \{0,1,2,\dots\}^n$.
+Define $\partial^\alpha f$.
+\end{problem}
+
+\begin{problem}
+  What is a \textbf{local minimum}? What is a \textbf{local maximum}? \\
+  What is a \textbf{local extremum}? What is a \textbf{critical point}?
+\end{problem}
+
+\begin{problem}
+  What is meant by $f(h) = o(|h|^m)$ as $h \to 0$? \\
+  What is meant by $f(h) = O(|h|^m)$ as $h \to 0$?
+\end{problem}
+
 \section{Numericals}
+
+\begin{problem}
+  Recall \ref{derivative-of-determinant}. For a 2-by-2 matrix $H$, expand $\det(I+H)$ as a Taylor series.
+\end{problem}
+
+\begin{problem}
+  Consider the function
+  \[
+    f(x,y) = \begin{cases}
+      0 & \text{if } (x,y) = (0,0), \\
+      e^{\frac{-1}{x^2+y^2}} & \text{otherwise.}
+    \end{cases}
+  \]
+  Find the Taylor series for the nonzero (!) function $f$.
+\end{problem}
+
+
+\begin{problem}
+Find the third-order Taylor polynomial (i.e., with terms of total degree $\leq 3$) of
+\[
+F(x,y)=\frac{e^{x-2y}\,\sin(x+y)}{1-x^2-y}
+\]
+about $(0,0)$, but you are \textit{not} allowed to compute partials. Instead, use one-variable Taylor polynomials for $e^t$, $\sin t$, and $(1-t)^{-1}$.
+\end{problem}
+
 
 \section{Exploration}
 
+\begin{problem}
+Let $f,g$ be $C^{|\alpha|}$ on an open set in $\R^n$.
+
+Use \ref{multiindex} to formulate a product rule
+\(
+  \partial^\alpha (fg) = \displaystyle\sum_{\beta + \gamma = \alpha} \text{(something)} (\partial^\beta f) \cdot (\partial^\gamma g).
+  \)
+\end{problem}
+
+\begin{problem}
+Let $S\subset \R^n$ be open and convex, and let $f:S\to\R$ be differentiable with $\nabla f\equiv 0$ on $S$.
+Prove that $f$ is constant on $S$.
+\end{problem}
+
+\begin{problem}\label{two-variable-spectral-theorem}%
+Let $f:\R^2\to\R$ be $C^2$ in a neighborhood of $(0,0)$, with $f(0,0)=0$ and
+$\nabla f(0,0)=\vec{0}$.  Suppose the quadratic part of the Taylor expansion of $f$
+at $(0,0)$ is \(Q(x,y)=ax^2+2bxy+cy^2\), so that
+\[
+  f(x,y) = ax^2 + 2bxy + cy^2 + o(x^2+y^2).
+\]
+Let $R_\theta$ be the rotation about the origin through angle $\theta$.
+Find $\theta$ so that there exist $\alpha,\gamma \in \R$ with
+\[
+  f(R_\theta(u,v))=\alpha u^2+\gamma v^2+o(u^2+v^2).
+\]
+\end{problem}
+
+\begin{problem}
+  Use \ref{two-variable-spectral-theorem} to prove a piece of the \textbf{second partial derivative test}.
+  Specifically, suppose $f:\R^2\to\R$ be $C^2$ in a neighborhood of $(0,0)$, and assume $\nabla f(0,0) = \vec{0}$. Assume the determinant of the Hessian of $f$ at $(0,0)$ is positive, and assume that
+  $\displaystyle\frac{\partial^2 f}{\partial x^2}(0,0) > 0$. Then show that $(0,0)$ is a local minimum of $f$.
+\end{problem}
+
+\begin{problem}\label{harmonic-averaging}%
+Let $f\in C^3$ in a neighborhood of $(0,0)$.  Define
+\[
+A(r)=\frac{1}{2\pi}\int_0^{2\pi} f(r \cos \theta,r \sin \theta)\,d\theta,
+\]
+which is the average value of $f$ on a circle of radius $r$. Show that
+\[
+  A(r)=f(0,0)+\frac{r^2}{4}\,\Delta f(0,0)+O(r^3).
+\]
+\end{problem}
+
 \section{Prove or Disprove and Salvage if Possible}
+
+\begin{problem}
+  Suppose $f : \R^2 \to \R$ is $C^2$ and harmonic and $\displaystyle\frac{\partial^2 f}{\partial x^2}(0,0) \neq 0$.
+
+  Then $(0,0)$ is not a local extremum for $f$.
+\end{problem}
+
+\begin{problem}
+  For a function $f : \R^2 \to \R$ for which second partials exist at $(0,0)$, we have
+  \[
+    \frac{\partial^2 f}{\partial x \partial y}(0,0) = \frac{\partial^2 f}{\partial y \partial x}(0,0).
+  \]
+\end{problem}
+
+\begin{problem}
+If $f:\R^2\to\R$ is differentiable and $\displaystyle\frac{\partial f}{\partial x}$ vanishes everywhere, then $f$ is independent of its first input, i.e., for all $x_1,x_2,y \in \R$, we have $f(x_1,y) = f(x_2,y)$.
+\end{problem}
+
+\begin{problem}
+If $S\subset \R^n$ is open and $f:S\to\R$ is differentiable with $|\nabla f(x)|\le M$ for all $x\in S$, then
+\(
+|f(b)-f(a)|\le M|b-a|
+\)
+for all \(a,b\in S\).
+\end{problem}
 
 \end{document}
